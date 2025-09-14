@@ -23,6 +23,8 @@ def get_db():
 def get_productos(db):
     return db.query(Productos).options(joinedload(Productos.inventario)).all()
 
+# pages/2_Inventario.py
+
 def add_producto(db, nombre, descripcion, precio_compra, precio_venta, cantidad):
     nuevo_producto = Productos(
         nombre=nombre,
@@ -31,16 +33,16 @@ def add_producto(db, nombre, descripcion, precio_compra, precio_venta, cantidad)
         precio_venta=precio_venta
     )
     db.add(nuevo_producto)
-    db.commit()
-    db.refresh(nuevo_producto)
+    # En lugar de commit, usa flush para obtener el ID sin guardar en la DB
+    db.flush()
 
     nuevo_inventario = Inventario(
         id_producto=nuevo_producto.id_producto,
-        cantidad=cantidad
+        cantidad=cantidad,
+        producto=nuevo_producto # Agrega esta línea para establecer la relación
     )
     db.add(nuevo_inventario)
-    db.commit()
-    db.refresh(nuevo_inventario)
+    db.commit() # Un solo commit para ambas transacciones
 
 def update_producto(db, id_producto, nombre, descripcion, precio_compra, precio_venta):
     producto = db.query(Productos).filter(Productos.id_producto == id_producto).first()
