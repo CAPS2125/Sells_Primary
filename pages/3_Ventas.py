@@ -100,7 +100,7 @@ with col_productos:
     
     if productos:
         for producto in productos:
-            inventario = producto.inventario[0]
+            inventario = producto.inventario
             with st.container():
                 st.write(f"**{producto.nombre}** - ${producto.precio_venta:.2f}")
                 st.write(f"Stock: {inventario.cantidad}")
