@@ -32,7 +32,7 @@ def get_productos_disponibles(db):
     # Obtiene todos los productos con su cantidad en inventario
     productos = db.query(Productos).options(joinedload(Productos.inventario)).all()
     # Filtra solo los que tienen stock
-    return [p for p in productos if p.inventario and p.inventario[0].cantidad > 0]
+    return [p for p in productos if p.inventario and p.inventario.cantidad > 0]
 
 def add_to_carrito(producto_id, cantidad):
     if producto_id in st.session_state.carrito:
