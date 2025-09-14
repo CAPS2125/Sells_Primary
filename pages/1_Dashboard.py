@@ -1,5 +1,5 @@
 import streamlit as st
-from ..BD.tablas import SessionLocal, Ventas, DetalleVenta, Productos
+from BD.tablas import SessionLocal, Ventas, DetalleVenta, Productos
 from sqlalchemy import func
 import pandas as pd
 from datetime import date
@@ -65,3 +65,4 @@ if not df_mas_vendidos.empty:
     st.table(df_mas_vendidos)
 else:
     st.info("Aún no hay ventas registradas para hoy.")
+
