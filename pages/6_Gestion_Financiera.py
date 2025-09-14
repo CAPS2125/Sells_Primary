@@ -109,3 +109,18 @@ with col3:
     st.metric("Ganancia Neta", f"${ganancia_neta:.2f}")
 
 # ... (resto de la sección de análisis financiero, incluyendo el gráfico de barras) ...
+st.markdown("---")
+
+# Visualización con gráfico
+st.subheader("Distribución de Ingresos y Gastos")
+datos_flujo = pd.DataFrame({
+    'Tipo': ['Ventas', 'Gastos'],
+    'Monto': [ventas_totales, gastos_totales]
+})
+
+# Ajustar los valores para el gráfico de barras si son negativos
+datos_flujo['Monto'] = datos_flujo['Monto'].abs()
+
+st.bar_chart(datos_flujo, x='Tipo', y='Monto')
+
+st.write("Esta gráfica te ayuda a visualizar la relación entre tus ventas y tus gastos en el periodo seleccionado.")
