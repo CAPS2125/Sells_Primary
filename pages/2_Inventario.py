@@ -40,6 +40,7 @@ def add_producto(db, nombre, descripcion, precio_compra, precio_venta, cantidad)
     )
     db.add(nuevo_inventario)
     db.commit()
+    db.refresh(nuevo_inventario)
 
 def update_producto(db, id_producto, nombre, descripcion, precio_compra, precio_venta):
     producto = db.query(Productos).filter(Productos.id_producto == id_producto).first()
