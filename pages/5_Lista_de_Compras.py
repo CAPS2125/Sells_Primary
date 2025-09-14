@@ -1,5 +1,5 @@
 import streamlit as st
-from bd import SessionLocal, Productos, Inventario
+from db import SessionLocal, Productos, Inventario
 from sqlalchemy.orm import joinedload
 
 st.set_page_config(
