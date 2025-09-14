@@ -86,7 +86,7 @@ if accion == "Ver Inventario":
     if productos:
         data = []
         for p in productos:
-            inventario = p.inventario[0] if p.inventario else None
+            inventario = p.inventario if p.inventario else None
             cantidad = inventario.cantidad if inventario else 0
             data.append({
                 'ID': p.id_producto,
