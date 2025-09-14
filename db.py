@@ -31,6 +31,19 @@ class Productos(Base):
     inventario = relationship("Inventario", back_populates="producto", uselist=False)
     detalles_venta = relationship("DetalleVenta", back_populates="producto")
 
+# Definición de la tabla Productos
+class Productos(Base):
+    __tablename__ = 'productos'
+    id_producto = Column(Integer, primary_key=True, index=True)
+    nombre = Column(String(50), nullable=False)
+    descripcion = Column(String(255))
+    precio_compra = Column(Numeric(10, 2), nullable=False)
+    precio_venta = Column(Numeric(10, 2), nullable=False)
+    fecha_creacion = Column(DateTime, default=datetime.utcnow)
+    # Esta es la línea crucial
+    inventario = relationship("Inventario", back_populates="producto", uselist=False)
+    detalles_venta = relationship("DetalleVenta", back_populates="producto")
+
 # Definición de la tabla Inventario
 class Inventario(Base):
     __tablename__ = 'inventario'
@@ -39,14 +52,6 @@ class Inventario(Base):
     cantidad = Column(Integer, default=0, nullable=False)
     ultima_actualizacion = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
     producto = relationship("Productos", back_populates="inventario")
-
-# Definición de la tabla Ventas
-class Ventas(Base):
-    __tablename__ = 'ventas'
-    id_venta = Column(Integer, primary_key=True, index=True)
-    fecha_venta = Column(DateTime, default=datetime.utcnow)
-    total_venta = Column(Numeric(10, 2), nullable=False)
-    detalles = relationship("DetalleVenta", back_populates="venta")
 
 # Definición de la tabla DetalleVenta
 class DetalleVenta(Base):
