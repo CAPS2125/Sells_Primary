@@ -29,7 +29,7 @@ class Productos(Base):
     
     # La relación con Inventario ahora usa un nombre más descriptivo
     # y `uselist=False` para indicar una relación de uno a uno.
-    inventario_item = relationship("Inventario", back_populates="producto_item", uselist=False)
+    inventario = relationship("Inventario", back_populates="producto", uselist=False)
     
     # La relación con DetalleVenta ahora usa un nombre más descriptivo.
     detalles_de_venta = relationship("DetalleVenta", back_populates="producto_detalle")
@@ -43,7 +43,7 @@ class Inventario(Base):
     ultima_actualizacion = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
     
     # Relación que apunta de regreso a Productos.
-    producto_item = relationship("Productos", back_populates="inventario_item")
+    producto = relationship("Productos", back_populates="inventario")
 
 # Definición de la tabla Ventas
 class Ventas(Base):
