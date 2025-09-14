@@ -1,5 +1,5 @@
 import streamlit as st
-from bd import SessionLocal, Ventas, DetalleVenta, Productos, Inventario, create_tables
+from db import SessionLocal, Ventas, DetalleVenta, Productos, Inventario, create_tables
 from sqlalchemy import func, cast, Date
 import pandas as pd
 from datetime import date, timedelta
