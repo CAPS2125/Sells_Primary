@@ -4,7 +4,14 @@ from sqlalchemy import func
 import pandas as pd
 from datetime import date
 
+st.set_page_config(
+    page_title="Dashboard",
+    page_icon="📊",
+    layout="wide"
+)
+
 st.title("Dashboard de Ventas 📊")
+st.markdown("Aquí puedes ver un resumen de las métricas clave de tu tienda.")
 
 def get_db():
     db = SessionLocal()
@@ -13,13 +20,13 @@ def get_db():
     finally:
         db.close()
 
-# Obtener ventas del día
+# Función para obtener las ventas del día
 def get_ventas_del_dia(db, dia):
     total_ventas = db.query(func.sum(Ventas.total_venta)).filter(func.date(Ventas.fecha_venta) == dia).scalar()
     num_transacciones = db.query(Ventas).filter(func.date(Ventas.fecha_venta) == dia).count()
     return total_ventas, num_transacciones
 
-# Obtener productos más vendidos
+# Función para obtener los productos más vendidos del día
 def get_productos_mas_vendidos(db, dia):
     stmt = db.query(
         Productos.nombre,
@@ -32,17 +39,14 @@ def get_productos_mas_vendidos(db, dia):
     
     return pd.DataFrame(stmt, columns=['Producto', 'Cantidad Vendida'])
 
-
-# Usar el contexto de la base de datos
+# Conexión a la base de datos
 db = next(get_db())
-
 dia_actual = date.today()
 
-# Muestra las métricas
+# Muestra las métricas principales
 total_ventas_hoy, num_transacciones_hoy = get_ventas_del_dia(db, dia_actual)
 ticket_promedio = total_ventas_hoy / num_transacciones_hoy if num_transacciones_hoy else 0
 
-st.subheader(f"Resumen de Hoy ({dia_actual.strftime('%d-%m-%Y')})")
 col1, col2, col3 = st.columns(3)
 
 with col1:
@@ -54,6 +58,7 @@ with col2:
 with col3:
     st.metric("Ticket Promedio", f"${ticket_promedio:.2f}")
 
+# Muestra los productos más vendidos
 st.subheader("Productos Más Vendidos Hoy")
 df_mas_vendidos = get_productos_mas_vendidos(db, dia_actual)
 if not df_mas_vendidos.empty:
