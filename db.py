@@ -1,4 +1,3 @@
-import streamlit as st
 import os
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker, declarative_base, relationship
@@ -6,7 +5,6 @@ from sqlalchemy import Column, Integer, String, DateTime, Numeric, ForeignKey
 from datetime import datetime
 
 # Define la ruta de la base de datos en la raíz del proyecto.
-# Esto asegura que el archivo 'tienda_escolar.db' se cree en la misma ubicación que tu aplicación.
 basedir = os.path.abspath(os.path.dirname(__file__))
 DATABASE_URL = "sqlite:///" + os.path.join(basedir, "tienda_escolar.db")
 
@@ -28,21 +26,13 @@ class Productos(Base):
     precio_compra = Column(Numeric(10, 2), nullable=False)
     precio_venta = Column(Numeric(10, 2), nullable=False)
     fecha_creacion = Column(DateTime, default=datetime.utcnow)
-    inventario = relationship("Inventario", back_populates="producto", uselist=False)
-    detalles_venta = relationship("DetalleVenta", back_populates="producto")
-
-# Definición de la tabla Productos
-class Productos(Base):
-    __tablename__ = 'productos'
-    id_producto = Column(Integer, primary_key=True, index=True)
-    nombre = Column(String(50), nullable=False)
-    descripcion = Column(String(255))
-    precio_compra = Column(Numeric(10, 2), nullable=False)
-    precio_venta = Column(Numeric(10, 2), nullable=False)
-    fecha_creacion = Column(DateTime, default=datetime.utcnow)
-    # Esta es la línea crucial
-    inventario = relationship("Inventario", back_populates="producto", uselist=False)
-    detalles_venta = relationship("DetalleVenta", back_populates="producto")
+    
+    # La relación con Inventario ahora usa un nombre más descriptivo
+    # y `uselist=False` para indicar una relación de uno a uno.
+    inventario_item = relationship("Inventario", back_populates="producto_item", uselist=False)
+    
+    # La relación con DetalleVenta ahora usa un nombre más descriptivo.
+    detalles_de_venta = relationship("DetalleVenta", back_populates="producto_detalle")
 
 # Definición de la tabla Inventario
 class Inventario(Base):
@@ -51,7 +41,18 @@ class Inventario(Base):
     id_producto = Column(Integer, ForeignKey("productos.id_producto"))
     cantidad = Column(Integer, default=0, nullable=False)
     ultima_actualizacion = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
-    producto = relationship("Productos", back_populates="inventario")
+    
+    # Relación que apunta de regreso a Productos.
+    producto_item = relationship("Productos", back_populates="inventario_item")
+
+# Definición de la tabla Ventas
+class Ventas(Base):
+    __tablename__ = 'ventas'
+    id_venta = Column(Integer, primary_key=True, index=True)
+    fecha_venta = Column(DateTime, default=datetime.utcnow)
+    total_venta = Column(Numeric(10, 2), nullable=False)
+    
+    detalles_de_venta = relationship("DetalleVenta", back_populates="venta")
 
 # Definición de la tabla DetalleVenta
 class DetalleVenta(Base):
@@ -61,8 +62,9 @@ class DetalleVenta(Base):
     id_producto = Column(Integer, ForeignKey("productos.id_producto"))
     cantidad = Column(Integer, nullable=False)
     precio_unitario = Column(Numeric(10, 2), nullable=False)
-    venta = relationship("Ventas", back_populates="detalles")
-    producto = relationship("Productos", back_populates="detalles_venta")
+    
+    venta = relationship("Ventas", back_populates="detalles_de_venta")
+    producto_detalle = relationship("Productos", back_populates="detalles_de_venta")
 
 # Definición de la tabla Clientes (opcional)
 class Clientes(Base):
