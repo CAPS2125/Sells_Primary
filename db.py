@@ -73,6 +73,14 @@ class Clientes(Base):
     nombre = Column(String(50))
     puntos_lealtad = Column(Integer, default=0)
 
+# Nueva Definición de la tabla Gastos
+class Gastos(Base):
+    __tablename__ = 'gastos'
+    id_gasto = Column(Integer, primary_key=True, index=True)
+    descripcion = Column(String(100), nullable=False)
+    monto = Column(Numeric(10, 2), nullable=False)
+    fecha_gasto = Column(DateTime, default=datetime.utcnow)
+
 # Código para crear las tablas
 def create_tables():
     Base.metadata.create_all(bind=engine)
