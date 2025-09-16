@@ -1,5 +1,5 @@
 import streamlit as st
-from db import SessionLocal, Ventas, DetalleVenta, Productos, Inventario, create_tables
+from db import SessionLocal, Ventas, DetalleVenta, Productos, Inventario
 from sqlalchemy.orm import joinedload
 from datetime import datetime
 
