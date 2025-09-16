@@ -1,13 +1,4 @@
 import streamlit as st
-import sys
-import os
-
-# Obtiene la ruta del directorio raíz del proyecto
-project_root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-
-# Añade la ruta del proyecto al path de Python para permitir importaciones
-sys.path.insert(0, project_root)
-
 from db import SessionLocal, Ventas, DetalleVenta, Productos, Inventario
 from sqlalchemy import func
 import pandas as pd
@@ -74,6 +65,7 @@ if not df_mas_vendidos.empty:
     st.table(df_mas_vendidos)
 else:
     st.info("Aún no hay ventas registradas para hoy.")
+
 
 
 
