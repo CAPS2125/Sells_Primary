@@ -52,11 +52,13 @@ class Gastos(Base):
     monto = Column(Numeric(10, 2), nullable=False)
     fecha_gasto = Column(DateTime, default=datetime.utcnow)
 
-# La función con el decorador ahora solo maneja la conexión y la creación de la DB
+# La función con el decorador ahora usa la ruta de secretos para la persistencia.
 @st.cache_resource
 def get_db_engine():
-    db_path = os.path.join(os.getcwd(), "tienda_escolar.db")
+    # Usa la ruta de la base de datos del archivo secrets.toml
+    db_path = st.secrets["database"]["db_path"]
     DATABASE_URL = f"sqlite:///{db_path}"
+
     engine = create_engine(DATABASE_URL)
     
     # Crea las tablas si no existen.
