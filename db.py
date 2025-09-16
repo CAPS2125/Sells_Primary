@@ -3,12 +3,12 @@ from sqlalchemy import create_engine, Column, Integer, String, DateTime, Numeric
 from sqlalchemy.orm import sessionmaker, declarative_base, relationship
 from datetime import datetime
 import streamlit as st
+from store_data import get_db_path
 
 # La base declarativa debe estar fuera de cualquier función
 Base = declarative_base()
 
 # Definición de las tablas (Clases)
-# Estas clases deben estar disponibles globalmente para ser importadas
 class Productos(Base):
     __tablename__ = 'productos'
     id_producto = Column(Integer, primary_key=True, index=True)
@@ -52,19 +52,13 @@ class Gastos(Base):
     monto = Column(Numeric(10, 2), nullable=False)
     fecha_gasto = Column(DateTime, default=datetime.utcnow)
 
-# La función con el decorador ahora usa la ruta de secretos para la persistencia.
 @st.cache_resource
 def get_db_engine():
-    # Usa la ruta de la base de datos del archivo secrets.toml
-    db_path = st.secrets["database"]["db_path"]
+    db_path = get_db_path()
     DATABASE_URL = f"sqlite:///{db_path}"
-
     engine = create_engine(DATABASE_URL)
-    
-    # Crea las tablas si no existen.
     Base.metadata.create_all(bind=engine)
     return engine
 
-# Uso del motor de la base de datos
 engine = get_db_engine()
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
