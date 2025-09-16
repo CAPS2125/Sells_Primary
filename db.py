@@ -3,7 +3,6 @@ from sqlalchemy import create_engine, Column, Integer, String, DateTime, Numeric
 from sqlalchemy.orm import sessionmaker, declarative_base, relationship
 from datetime import datetime
 import streamlit as st
-from store_data import get_db_path
 
 # La base declarativa debe estar fuera de cualquier función
 Base = declarative_base()
@@ -52,13 +51,21 @@ class Gastos(Base):
     monto = Column(Numeric(10, 2), nullable=False)
     fecha_gasto = Column(DateTime, default=datetime.utcnow)
 
-@st.cache_resource
-def get_db_engine():
-    db_path = get_db_path()
-    DATABASE_URL = f"sqlite:///{db_path}"
-    engine = create_engine(DATABASE_URL)
-    Base.metadata.create_all(bind=engine)
-    return engine
+# Define la ruta de la base de datos dentro de la carpeta 'data'.
+basedir = os.path.abspath(os.path.dirname(__file__))
+db_path = os.path.join(basedir, "data", "tienda_escolar.db")
+DATABASE_URL = f"sqlite:///{db_path}"
 
-engine = get_db_engine()
+# Crea el motor de la base de datos
+engine = create_engine(DATABASE_URL)
+
+# Crea las tablas solo si el archivo de la base de datos no existe.
+# Esto previene que se borre si ya está en el repositorio.
+if not os.path.exists(db_path):
+    # Asegúrate de que la carpeta 'data' exista antes de crear el archivo.
+    os.makedirs(os.path.dirname(db_path), exist_ok=True)
+    Base.metadata.create_all(bind=engine)
+    st.info("Base de datos y tablas creadas por primera vez.")
+
+# Crea una sesión para interactuar con la base de datos
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
