@@ -2,6 +2,9 @@ import streamlit as st
 import pandas as pd
 from db import SessionLocal, Productos, Inventario, Ventas, DetalleVenta, Gastos
 from sqlalchemy.orm import sessionmaker
+import zipfile
+import io
+import os
 
 st.set_page_config(
     page_title="Gestión de Datos",
@@ -25,11 +28,6 @@ TABLAS = {
 st.header("Exportar Tablas a CSV")
 st.markdown("Descarga todas tus tablas en archivos CSV separados.")
 
-# Usar un solo botón para exportar todo a un archivo comprimido
-# Esto es más eficiente que descargar tabla por tabla
-import zipfile
-import io
-
 def export_all_tables_to_zip():
     zip_buffer = io.BytesIO()
     with zipfile.ZipFile(zip_buffer, "w", zipfile.ZIP_DEFLATED, False) as zip_file:
@@ -38,14 +36,15 @@ def export_all_tables_to_zip():
             for table_name, table_class in TABLAS.items():
                 data = db.query(table_class).all()
                 df = pd.DataFrame([vars(d) for d in data])
-                # Limpiar columnas internas de SQLAlchemy
-                if '_sa_instance_state' in df.columns:
-                    df = df.drop(columns=['_sa_instance_state'])
                 
-                # Escribir el DataFrame al buffer del zip
-                df.to_csv(f"{table_name}.csv", index=False)
-                zip_file.write(f"{table_name}.csv")
-
+                if not df.empty:
+                    # Limpiar columnas internas de SQLAlchemy
+                    if '_sa_instance_state' in df.columns:
+                        df = df.drop(columns=['_sa_instance_state'])
+                    
+                    # Escribir el DataFrame al buffer del zip
+                    csv_string = df.to_csv(index=False).encode('utf-8')
+                    zip_file.writestr(f"{table_name}.csv", csv_string)
         finally:
             db.close()
 
@@ -54,38 +53,46 @@ def export_all_tables_to_zip():
 
 # Botón de descarga para el archivo ZIP
 zip_file = export_all_tables_to_zip()
-st.download_button(
-    label="Descargar Todas las Tablas (ZIP)",
-    data=zip_file,
-    file_name="tablas_tienda_escolar.zip",
-    mime="application/zip"
-)
+if zip_file:
+    st.download_button(
+        label="Descargar Todas las Tablas (ZIP)",
+        data=zip_file,
+        file_name="tablas_tienda_escolar.zip",
+        mime="application/zip"
+    )
+else:
+    st.warning("No hay datos para exportar.")
 
 # --- Importar Datos ---
 st.header("Importar Datos desde CSV")
 st.markdown("Carga archivos CSV para repoblar tus tablas. **¡Esto sobrescribirá los datos existentes!**")
 
 uploaded_files = st.file_uploader(
-    "Sube todos los archivos CSV (.zip)",
+    "Sube un archivo ZIP",
     type=["zip"],
     accept_multiple_files=False
 )
 
 if uploaded_files is not None:
-    # Descomprimir los archivos del ZIP
     zip_buffer = uploaded_files.getvalue()
     zip_file = zipfile.ZipFile(io.BytesIO(zip_buffer), "r")
     
     st.info("Descomprimiendo archivos...")
     
-    # Un diccionario para guardar los DataFrames de los archivos subidos
     uploaded_dfs = {}
+    
     for filename in zip_file.namelist():
         with zip_file.open(filename) as file:
-            df = pd.read_csv(file)
-            table_name = filename.replace(".csv", "")
-            if table_name in TABLAS:
-                uploaded_dfs[table_name] = df
+            # Revisa si el archivo no está vacío
+            if file.seek(0, os.SEEK_END) > 0:
+                file.seek(0) # Regresa al inicio del archivo
+                try:
+                    df = pd.read_csv(file)
+                    table_name = filename.replace(".csv", "")
+                    if table_name in TABLAS:
+                        uploaded_dfs[table_name] = df
+                except pd.errors.EmptyDataError:
+                    st.warning(f"El archivo '{filename}' está vacío y será ignorado.")
     
     st.success("Archivos leídos exitosamente.")
     
@@ -93,8 +100,6 @@ if uploaded_files is not None:
     if st.button("Guardar Datos en la Base de Datos"):
         db = SessionLocal()
         try:
-            # Importar en el orden correcto para manejar las dependencias
-            # Primero las tablas sin FK, luego las dependientes
             import_order = ["productos", "inventario", "ventas", "detalle_venta", "gastos"]
 
             for table_name in import_order:
@@ -106,7 +111,6 @@ if uploaded_files is not None:
                     db.query(TABLAS[table_name]).delete()
                     
                     for index, row in df.iterrows():
-                        # Crear una nueva instancia de la clase de la tabla
                         instance = TABLAS[table_name]()
                         for col, value in row.items():
                             setattr(instance, col, value)
