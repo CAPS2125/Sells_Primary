@@ -63,8 +63,6 @@ if zip_file:
 else:
     st.warning("No hay datos para exportar.")
 
----
-
 # --- Importar Datos ---
 st.header("Importar Datos desde CSV")
 st.markdown("Carga archivos CSV para repoblar tus tablas. **¡Esto sobrescribirá los datos existentes!**")
@@ -105,7 +103,7 @@ if uploaded_files is not None:
             import_order = ["productos", "inventario", "ventas", "detalle_venta", "gastos"]
 
             for table_name in import_order:
-                if table_name in uploaded_dfs and not uploaded_dfs[table_name].empty:
+                if table_name in uploaded_dfs:
                     st.write(f"Importando tabla: **{table_name}**")
                     df = uploaded_dfs[table_name]
                     
@@ -123,6 +121,9 @@ if uploaded_files is not None:
             
         except Exception as e:
             db.rollback()
+            st.error(f"Ocurrió un error al importar los datos: {e}")
+        finally:
+            db.close()
             st.error(f"Ocurrió un error al importar los datos: {e}")
         finally:
             db.close()
